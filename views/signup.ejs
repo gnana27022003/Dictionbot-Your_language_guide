@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Sign Up Page</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background-color: #F2F0EF;
+      padding: 0;
+     /* Replace with your image path */
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-attachment: fixed;
+      color: #333;
+      position: relative;
+      overflow: hidden;
+    }
+
+    
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px 60px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 5px 30px #351E10;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid #ddd;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .container:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 40px #351E10;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 28px; /* Consistent heading font size */
+      color:#351E10;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+      color: #351E10;
+      font-size: 16px; /* Consistent label font size */
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;  /* Thicker border for emphasis */
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 16px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;  /* Smooth transition */
+    }
+
+    /* Input field border color change on focus */
+    .input-group input:focus {
+      border-color: #058fb9;  /* Accent color for focus */
+      box-shadow: 0 0 8px #058fb9;  /* Subtle shadow effect */
+      outline: none;  /* Removes default outline */
+    }
+
+    /* Placeholder styling (optional) */
+    ::-webkit-input-placeholder {
+      color: #888;
+    }
+
+    ::-moz-placeholder {
+      color: #888;
+    }
+
+    :-ms-input-placeholder {
+      color: #888;
+    }
+
+    :-moz-placeholder {
+      color: #888;
+    }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 12px;
+      background-color: #058fb9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px; /* Consistent button font size */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .signin-link {
+      color: #058fb9; /* Original color */
+      text-decoration: underline; /* Optional: removes underline */
+  }
+
+  .signin-link:hover {
+      color: rgb(17, 65, 241); /* Color on hover */
+  }
+    .btn:hover {
+      background-color: rgb(17, 65, 241)0;
+    }
+
+    .terms {
+      font-size: 12px;
+      color: #351E10;
+      margin-top: 15px;
+    }
+
+    .terms a {
+      color: #351E10;
+      text-decoration: none;
+    }
+
+    ::-webkit-input-placeholder {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #351E10;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 30px;
+        width: 90%;
+      }
+
+      .input-group input {
+        padding: 10px;
+      }
+    }
+  </style>
+  <script>  
+    function validate(){
+      const u=document.getElementById('email').value;
+      const p=document.getElementById('password').value;
+      var p1 = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      var p2 = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+      if (!p1.test(u)) {
+        alert('Please enter a valid email address.');
+        document.getElementById('email').value=''
+        return false
+    }else if (!p2.test(p)) {
+        alert('Password must contain at least one letter, one number, and one special character.');
+        document.getElementById('password').value=''
+        return false
+    }
+    else{
+      return true
+    }
+  }
+</script>
+</head>
+<body>
+  <div class="background-blur"></div>
+
+  <div class="container">
+    <h2>Welcome to Dictionbot</h2>
+
+    <form action="/signup" method="POST" onsubmit="return validate()">
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Create a password" required>
+      </div>
+
+      <button type="submit" class="btn">Sign Up</button>
+    </form>
+
+    <p class="terms">
+      By signing up, signing in, or continuing, I agree to the 
+      <u><a href="/terms">Dictionbot Terms of Use</a></u> and acknowledge the 
+      <u><a href="/terms">Dictionbot Privacy Policy</a></u>.
+    </p>
+
+    <p>Already have an account? <a href="/signin" class="signin-link">Sign in</a></p>
+  </div>
+</body>
+</html>

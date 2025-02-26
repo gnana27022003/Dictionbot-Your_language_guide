@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dictionbot Login</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #F2F0EF; /* Replace with your background image */
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background-blur {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      filter: blur(3px);
+      z-index: -1;
+    }
+
+    .login-container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 40px 60px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 5px 30px #351E10;
+      max-width: 400px;
+      width: 100%;
+      border: 2px solid #ddd;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .login-container:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 40px #351E10;
+    }
+
+    h2 {
+      font-size: 28px; /* Consistent heading font size */
+      margin-bottom: 20px;
+      color: #351E10;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin: 10px 0 5px;
+      text-align: left;
+      color: #351E10;
+      font-size: 16px; /* Consistent label font size */
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px; /* Consistent input font size */
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      margin-bottom: 20px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #058fb9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px; /* Consistent button font size */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      transition: background-color 0.3s ease;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: rgb(17, 65, 241);
+    }
+    .input-group label {
+        display: block;
+        margin-bottom: 7px;
+        font-weight: bold;
+        color: #351E10;
+        font-size: 16px; /* Consistent label font size */
+      }
+  
+      .input-group input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;  /* Thicker border for emphasis */
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;  /* Smooth transition */
+      }
+  
+      /* Input field border color change on focus */
+      .input-group input:focus {
+        border-color: #058fb9;  /* Accent color for focus */
+        box-shadow: 0 0 8px #058fb9;  /* Subtle shadow effect */
+        outline: none;  /* Removes default outline */
+      }
+    .forgot-password {
+      text-align: right;
+      font-size: 0.9em;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    .error-message {
+    background-color: #ffcccc; /* Light red background */
+    color: #ff0000; /* Bright red text */
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    display:none
+}
+    .signup-link {
+        color: #058fb9; /* Original color */
+        text-decoration: underline; /* Optional: removes underline */
+    }
+  
+    .signup-link:hover {
+        color: rgb(17, 65, 241); /* Color on hover */
+    }
+    ::-webkit-input-placeholder {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #351E10;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px;
+        width: 90%;
+      }
+
+      input {
+        padding: 10px;
+      }
+    }
+  </style>
+
+</head>
+<body>
+
+  <div class="background-blur"></div>
+
+  <div class="login-container">
+    <h2>Dictionbot Login</h2>
+
+    <form name="loginForm" action="/signin" method="POST">
+      <label for="email">email or Email</label>
+      <input type="text" id="email" name="email" placeholder="Enter your email or email" required>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter your password" required>
+      <div id="error-message" class="error-message"><%= errorMessage %></div>
+      <button type="submit">Sign In</button>
+  </form>
+
+
+    <p>Don't have an account? <a href="/signup" class="signup-link">Sign Up</a></p>
+  </div>
+  <script>
+    // Ensure error message is shown if there is an error
+    document.addEventListener('DOMContentLoaded', () => {
+        const errorMessage = "<%= errorMessage %>";
+        if (errorMessage) {
+            document.getElementById('error-message').style.display = 'block';
+        }
+    });
+
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const showPasswordCheckbox = document.getElementById('show-password');
+        if (showPasswordCheckbox.checked) {
+            passwordField.type = 'text';
+        } else {
+            passwordField.type = 'password';
+        }
+    }
+</script>
+
+
+</body>
+</html>
