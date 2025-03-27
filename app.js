@@ -44,7 +44,7 @@ app.get('/', async (req, res) => {
     res.render('home');
 });
 
-app.get('/bot',authMiddleware, async (req, res) => {
+app.get('/bot', async (req, res) => {
     res.render('index');
 });
 
@@ -57,5 +57,5 @@ app.get('/signup', async (req, res) => {
 });
 
 app.listen(process.env.port || 3000, () => {
-    console.log("Server running at http://localhost:3000");
+    console.log("Server running at http://localhost:3000/bot");
 });

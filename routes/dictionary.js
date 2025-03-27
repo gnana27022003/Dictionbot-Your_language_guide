@@ -10,112 +10,190 @@ let previousWord = [];
 let previousResponse = [];
 
 // APIs configuration
-const WORDNIK_API_KEY = '6n88dr8jqmywcpgnjzzbrrlw8u3ou4c4qtnbwj26cj5hej2qj';
+const WORDNIK_API_KEY = '6n88dr8jqmywcpgnjzzbrrlw8u3ou4c4qtnbwj26cj5hej2qj'
+const MW_DICT_API_KEY = 'bc616239-a540-4793-8f59-7741873c1339';
+const MW_THESAURUS_API_KEY = 'daa716c5-ed4f-48aa-80d0-2f0888449142';
 const GEMINI_API_KEY = 'AIzaSyAogvnXxx6hO7OGl7Q7kfYiLrGTHocOeLs';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-/**
- * Fetch Definitions and Part of Speech
- */
-async function fetchDefinitions(word) {
+
+
+async function fetchData(url, retries = 3) {
     try {
-        const response = await axios.get(
-            `https://api.wordnik.com/v4/word.json/${word}/definitions?limit=10&api_key=${WORDNIK_API_KEY}`
-        );
-        return response.data.length > 0
-            ? response.data.map(entry => ({
-                definition: entry.text || "No definition available",
-                partOfSpeech: entry.partOfSpeech || "N/A"
-            }))
-            : [{ definition: "No definition found", partOfSpeech: "N/A" }];
+        const response = await axios.get(url);
+        return response.data;
     } catch (error) {
-        console.error("Error fetching definitions:", error.message);
-        return [{ definition: "Error fetching definition", partOfSpeech: "N/A" }];
+        console.error(`Error fetching data: ${error.message}`);
+        if (retries > 0) return fetchData(url, retries - 1);
+        return null;
     }
 }
 
 /**
- * Fetch Examples
+ * ✅ Fetch Data from Merriam-Webster
  */
-async function fetchExamples(word) {
+async function getMWData(word) {
     try {
-        const response = await axios.get(
-            `https://api.wordnik.com/v4/word.json/${word}/examples?limit=5&api_key=${WORDNIK_API_KEY}`
-        );
-        return response.data.examples?.map(example => example.text) || ["No examples found"];
+        const dictRes = await fetchData(`https://www.dictionaryapi.com/api/v3/references/sd3/json/${word}?key=${MW_DICT_API_KEY}`);
+        const thesaurusRes = await fetchData(`https://www.dictionaryapi.com/api/v3/references/ithesaurus/json/${word}?key=${MW_THESAURUS_API_KEY}`);
+
+        let definitions = [];
+        let synonyms = [];
+        let examples = [];
+
+        for (const entry of dictRes || []) {
+            if (typeof entry === "object" && entry.shortdef) {
+                entry.shortdef.forEach(def => {
+                    definitions.push({
+                        definition: def,
+                        partOfSpeech: entry.fl || "Unknown",
+                        source: "Merriam-Webster"
+                    });
+                });
+            }
+        }
+
+        for (const entry of thesaurusRes || []) {
+            if (typeof entry === "object" && entry.meta?.syns) {
+                synonyms = entry.meta.syns[0].map(s => ({ word: s, source: "Merriam-Webster" }));
+            }
+        }
+
+        return { definitions, synonyms, examples };
     } catch (error) {
-        console.error("Error fetching examples:", error.message);
-        return ["Error fetching examples"];
+        console.error("Merriam-Webster API Error:", error.message);
+        return { definitions: [], synonyms: [], examples: [] };
     }
 }
 
 /**
- * Fetch Synonyms
+ * ✅ Fetch Data from Wordnik
  */
-async function fetchSynonyms(word) {
+async function getWordnikData(word) {
     try {
-        const response = await axios.get(
-            `https://api.wordnik.com/v4/word.json/${word}/relatedWords?limitPerRelationshipType=10&api_key=${WORDNIK_API_KEY}`
-        );
-        const synonymsEntry = response.data.find(entry => entry.relationshipType === 'synonym');
-        return synonymsEntry ? synonymsEntry.words : ["No synonyms available"];
-    } catch (error) {
-        console.error("Error fetching synonyms:", error.message);
-        return ["Error fetching synonyms"];
-    }
-}
+        const definitionsRes = await fetchData(`https://api.wordnik.com/v4/word.json/${word}/definitions?limit=5&api_key=${WORDNIK_API_KEY}`);
+        const synonymsRes = await fetchData(`https://api.wordnik.com/v4/word.json/${word}/relatedWords?limitPerRelationshipType=10&api_key=${WORDNIK_API_KEY}`);
+        const examplesRes = await fetchData(`https://api.wordnik.com/v4/word.json/${word}/examples?limit=5&api_key=${WORDNIK_API_KEY}`);
 
-/**
- * Smarter Dictionary Query Detection
- */
-const dictionaryKeywords = [
-    "what is the meaning of", "define", "meaning of", "mean by",
-    "word meaning", "mean", "what does", "what is mean by"
-];
+        let definitions = definitionsRes?.map(def => ({
+            definition: def.text,
+            partOfSpeech: def.partOfSpeech || "Unknown",
+            source: "Wordnik"
+        })) || [];
 
-function extractDictionaryWord(text) {
-    const lowerText = text.toLowerCase();
+        const synonymsEntry = synonymsRes?.find(entry => entry.relationshipType === 'synonym');
+        const synonym = synonymsEntry ? synonymsEntry.words : ["No synonyms available"];
     
-    for (const keyword of dictionaryKeywords) {
-        if (lowerText.includes(keyword)) {
-            const wordsAfterKeyword = lowerText.split(keyword).pop().trim();
-            if (wordsAfterKeyword) {
-                return wordsAfterKeyword.split(" ")[0]; // Extract the first word after the keyword
+
+        let examples = examplesRes?.examples?.map(example => example.text) || [];
+
+        return { definitions, synonym, examples };
+    } catch (error) {
+        console.error("Wordnik API Error:", error.message);
+        return { definitions: [], synonyms: [], examples: [] };
+    }
+}
+
+async function getFreeDictionaryData(word) {
+    const data = await fetchData(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+    let definitions = [], synonyms = [], examples = [];
+
+    for (const entry of data || []) {
+        for (const meaning of entry.meanings || []) {
+            for (const def of meaning.definitions || []) {
+                definitions.push({ definition: def.definition, partOfSpeech: meaning.partOfSpeech, source: "Free Dictionary" });
+                if (def.example) examples.push(def.example);
+                if (def.synonyms) synonyms.push(...def.synonyms);
             }
         }
     }
-    return null;
+
+    return { definitions, synonyms, examples };
 }
 
-/**
- * Smarter Greetings Detection
- */
-const greetingsPatterns = /\b(hi|hello+|hey+|hai+)\b/i;
 
-/**
- * Bot Info Query Detection
- */
-const botInfoPatterns = /\b(who are you|what are you doing|what's your job|what is dictionbot|what is your role|why are you here|what's dictionbot)\b/i;
+async function mergeData(word) {
+    const mwData = await getMWData(word);
+    const wordnikData = await getWordnikData(word);
+    const freeDict = await getFreeDictionaryData(word)
+    return {
+        word,
+        sources: {
+            "Merriam-Webster API": {
+                definitions: mwData.definitions,
+                synonyms: mwData.synonyms,
+                examples: mwData.examples
+            },
+            "Wordnik API": {
+                definitions: wordnikData.definitions,
+                synonyms: wordnikData.synonym,  // Fixing the key naming issue
+                examples: wordnikData.examples
+            },
+            "Free Dictionary API":{
+                definitions: freeDict.definitions,
+                synonyms: freeDict.synonyms,  // Fixing the key naming issue
+                examples: freeDict.examples
+            }
+        }
+    };
+}
 
-/**
- * Classify query: Dictionary, Greetings, Info about Bot, or General
- */
-function classifyQuery(text) {
-    const word = extractDictionaryWord(text);
-    if (word) return { type: "dictionary", word };
 
-    if (greetingsPatterns.test(text)) return { type: "greeting" };
 
-    if (botInfoPatterns.test(text)) return { type: "bot-info" };
+async function classifyQueryUsingGemini(text) {
+    try {
+        const prompt = `Classify the following user query into one of these types:
+        - "greeting" (if it's a greeting like hi, hello)
+        - "bot-info" (if it's about the bot's role, like who are you?)
+        - "follow-up" (if it's asking for more details like more examples,explain clearly,proper explaination,if the user didn't get the word meaning)
+        - "dictionary" (if the user is asking for a word meaning)
+        - "out-of-scope" (if it's not related to the above categories and it's not related to meaning or vocabulary or dictionary)
+        
+        Query: "${text}"
+        Return the type ONLY, without explanation.`;
 
-    // Detecting follow-up queries
-    if (/\bmore synonyms\b/i.test(text)) return { type: "follow-up", requestType: "synonyms" };
-    if (/\bmore examples\b/i.test(text)) return { type: "follow-up", requestType: "examples" };
-    if (/\bmore definitions\b/i.test(text)) return { type: "follow-up", requestType: "definitions" };
-    if (/\b(didn't get it|explain|elaborate|simpler terms)\b/i.test(text)) return { type: "follow-up", requestType: "explanation" };
-    
-    return { type: "out-of-scope" };
+        console.log("🔹 Sending request to Gemini for classification...");
+
+        const result = await model.generateContent(prompt);
+        console.log("🔹 Full Gemini API Response:", JSON.stringify(result, null, 2));
+
+        const classification = result.response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+        console.log("🔹 Classified as:", classification);
+
+        if (classification === "dictionary") {
+            const word = await extractWordUsingGemini(text);
+            return { type: "dictionary", word };
+        }
+
+        return { type: classification || "out-of-scope" };
+    } catch (error) {
+        console.error("❌ Error classifying query using Gemini:", error.message);
+        return { type: "out-of-scope" };
+    }
+}
+
+async function extractWordUsingGemini(text) {
+    try {
+        const prompt = `Extract the main dictionary word from the following query:
+        "${text}"
+        Only return the single word without any extra text.`;
+
+        console.log("🔹 Sending request to Gemini for word extraction...");
+
+        const result = await model.generateContent(prompt);
+        console.log("🔹 Full Gemini API Response:", JSON.stringify(result, null, 2));
+
+        const extractedWord = result.response?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+        console.log("🔹 Extracted word from Gemini:", extractedWord);
+
+        return extractedWord || null;
+    } catch (error) {
+        console.error("❌ Error extracting word using Gemini API:", error.message);
+        return null;
+    }
 }
 
 /**
@@ -132,65 +210,50 @@ async function fetchFromGemini(query) {
 }
 
 /**
- * Handle all chatbot requests (Dictionary + Bot Info + Greetings + Restrictions)
+ * ✅ Handle all chatbot requests (Dictionary + Bot Info + Greetings + Follow-ups)
  */
 router.post('/chat', async (req, res) => {
     const { query } = req.body;
     if (!query) return res.status(400).json({ error: 'No query provided' });
 
-    const classification = classifyQuery(query);
-
+    const classification = await classifyQueryUsingGemini(query);
     if (classification.type === "dictionary") {
         const word = classification.word;
         console.log(`Fetching dictionary data for: ${word}`);
-
-        const [definitions, examples, synonyms] = await Promise.all([
-            fetchDefinitions(word),
-            fetchExamples(word),
-            fetchSynonyms(word)
-        ]);
-
-        previousWord = [word];
-        previousResponse = [{ definitions, examples, synonyms }];
-
-        return res.json({ word, definitions, examples, synonyms });
+    
+        try {
+            const data = await mergeData(word);
+    
+            if (data.sources) {
+                previousWord = [word];
+                previousResponse = [data.sources];
+            }
+    
+            return res.json(data);
+        } catch (error) {
+            console.error(`Error fetching dictionary data for ${word}:`, error.message);
+            return res.json({ word, error: "Error retrieving dictionary data" });
+        }
     }
+    
 
     if (classification.type === "follow-up") {
         if (previousWord.length > 0) {
             const lastWord = previousWord[previousWord.length - 1];
             console.log(`Fetching follow-up details for: ${lastWord}`);
-            const q = `${query} of the word ${lastWord}`;
-            console.log(q);
-            const responseData = await fetchFromGemini(q);
-
+            const responseData = await fetchFromGemini(`${query} of the word ${lastWord}`);
             return res.json({ response: responseData });
-        } else {
-            return res.json({ error: "No previous word context found" });
         }
+        return res.json({ error: "No previous word context found" });
     }
 
-    if (classification.type === "greeting") {
-        console.log("Greeting detected!");
-        return res.json({ response: "Hello! I'm DictionBot, your vocabulary assistant. How can I help you with words today?" });
-    }
+    if (classification.type === "greeting") return res.json({ response: "Hello! I'm DictionBot, your vocabulary assistant. How can I help you with words today?" });
 
-    if (classification.type === "bot-info") {
-        console.log("Bot info detected!");
-        return res.json({
-            response: "I am DictionBot, a dictionary-based chatbot! I help users understand words by providing definitions, synonyms, and examples. Feel free to ask me about any word!"
-        });
-    }
+    if (classification.type === "bot-info") return res.json({ response: "I am DictionBot, a dictionary-based chatbot! I will help you to learn vocabulary and provide explanation for clear understanding." });
 
-    if (classification.type === "out-of-scope") {
-        console.log("Out-of-scope query detected!");
-        const resp = await fetchFromGemini(query)
-        return res.json({
-            response: resp
-        });
-    }
-
-    return res.json({ response: "Sorry, I couldn't understand your query." });
+    if (classification.type === "out-of-scope") return res.json({ response: "I am DictionBot, a dictionary-based chatbot! I only provide knowledge related to dictionary and vocabulary. Please feel free to ask any kind of meanings, definitions, etc." });
+    
+    return res.json({ response: await fetchFromGemini(query) });
 });
 
 module.exports = router;

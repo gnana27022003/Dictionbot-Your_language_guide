@@ -10,7 +10,7 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
-        background: url('pbackground.jpg') no-repeat center center/cover;
+        background: url('pbackgrund.jpg') no-repeat center center/cover;
         font-family: Arial, sans-serif;
     }
     .chat-container {
@@ -22,7 +22,7 @@
         position: relative;
     }
     .chat-header {
-        background: #058fb9;
+        background: rgba(2, 82, 82, 0.915);
         color: white;
         padding: 10px;
         font-size: 18px;
@@ -71,7 +71,7 @@
 
 
     .message.sent .text {
-        background: #058fb9;
+        background: rgba(2, 82, 82, 0.915);
         color: white;
         margin-left: 50px;
     }
@@ -107,7 +107,7 @@
         outline: none;
     }
     .chat-input button {
-        background: #058fb9;
+        background: rgba(2, 82, 82, 0.915);
         color: white;
         border: none;
         padding: 8px 12px;
@@ -233,7 +233,7 @@ async function sendMessage() {
 /**
  * Displays dictionary information
  */
-function displayWordInfo(word, info) {
+ function displayWordInfo(word, info) {
     const chatBox = document.getElementById("chatBox");
     const receivedMessage = document.createElement("div");
     receivedMessage.classList.add("message", "received");
@@ -246,30 +246,40 @@ function displayWordInfo(word, info) {
     header.textContent = word;
     dictionaryInfo.appendChild(header);
 
-    // ✅ Display definitions
-    if (info.definitions && info.definitions.length > 0) {
-        info.definitions.forEach((def, index) => {
-            const definition = document.createElement("p");
-            definition.classList.add("definition");
-            definition.innerHTML = `<strong>Definition ${index + 1} (${def.partOfSpeech || "N/A"}):</strong> ${def.definition}`;
-            dictionaryInfo.appendChild(definition);
-        });
-    } else {
-        dictionaryInfo.innerHTML += "<p><strong>Definition:</strong> No definitions found.</p>";
-    }
+    // Loop through API Sources
+    if (info.sources) {
+        for (const [api, data] of Object.entries(info.sources)) {
+            const apiHeading = document.createElement("h3");
+            apiHeading.classList.add("api-heading");
+            apiHeading.textContent = `${api}:`;
+            dictionaryInfo.appendChild(apiHeading);
 
-    // ✅ Display examples
-    if (info.examples && info.examples.length > 0) {
-        dictionaryInfo.innerHTML += `<p><strong>Example:</strong> ${info.examples[0] || "No example available"}</p>`;
-    } else {
-        dictionaryInfo.innerHTML += "<p><strong>Example:</strong> No example found.</p>";
-    }
+            // Display Definitions
+            if (data.definitions && data.definitions.length > 0) {
+                data.definitions.forEach((def, index) => {
+                    const definition = document.createElement("p");
+                    definition.classList.add("definition");
+                    definition.innerHTML = `<strong>Definition ${index + 1} (${def.partOfSpeech || "N/A"}):</strong> ${def.definition}`;
+                    dictionaryInfo.appendChild(definition);
+                });
+            } else {
+                dictionaryInfo.innerHTML += `<p><strong>Definitions (${api}):</strong> No definitions found.</p>`;
+            }
 
-    // ✅ Display synonyms
-    if (info.synonyms && info.synonyms.length > 0) {
-        dictionaryInfo.innerHTML += `<p><strong>Synonyms:</strong> ${info.synonyms.join(", ")}</p>`;
-    } else {
-        dictionaryInfo.innerHTML += "<p><strong>Synonyms:</strong> No synonyms available.</p>";
+            // Display Synonyms
+            if (data.synonyms && data.synonyms.length > 0) {
+                dictionaryInfo.innerHTML += `<p><strong>Synonyms (${api}):</strong> ${data.synonyms.map(s => s.word || s).join(", ")}</p>`;
+            } else {
+                dictionaryInfo.innerHTML += `<p><strong>Synonyms (${api}):</strong> No synonyms available.</p>`;
+            }
+
+            // Display Examples
+            if (data.examples && data.examples.length > 0) {
+                dictionaryInfo.innerHTML += `<p><strong>Example (${api}):</strong> ${data.examples[0]}</p>`;
+            } else {
+                dictionaryInfo.innerHTML += `<p><strong>Example (${api}):</strong> No examples found.</p>`;
+            }
+        }
     }
 
     receivedMessage.innerHTML = `<img src="LEXIBOT.png" alt="Logo">`;
@@ -285,6 +295,7 @@ function displayWordInfo(word, info) {
     const copyButton = createButton("📋", () => copyTextToClipboard(info, copyButton));
     dictionaryInfo.appendChild(copyButton);
 }
+
 /**
  * Displays a simple chatbot response (e.g., greetings and bot info)
  */
@@ -439,3 +450,8 @@ function checkEnter(event) {
 
 </body>
 </html>
+
+
+
+
+
