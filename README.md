@@ -3,14 +3,14 @@
 #### **Overview**  
 DictionBot is an AI-powered dictionary chatbot that helps users find word meanings, synonyms, examples, and parts of speech efficiently. Unlike traditional dictionary bots, DictionBot intelligently differentiates between **dictionary-related queries** and **general conversation**, responding accordingly.  
 
-It integrates **Wordnik API** for fetching dictionary data and **Gemini AI API** for handling casual chats, follow-up queries, and deeper explanations.  
+It integrates **Wordnik API,Free Dictionary API,Merrium Webster API** for fetching dictionary data and **Gemini AI API** for handling casual chats, follow-up queries, and deeper explanations.  
 
 ---
 
 ### **Key Features**  
 
 ✔ **Intelligent Query Recognition** – Understands whether a user is asking for a word’s meaning or engaging in general conversation.  
-✔ **Comprehensive Word Lookup** – Provides **definitions, synonyms, examples, and parts of speech** for any word using the **Wordnik API**.  
+✔ **Comprehensive Word Lookup** – Provides **definitions, synonyms, examples, and parts of speech** for any word using the **Wordnik API,Free Dictionary API,Merrium Webster API**.  
 ✔ **Context-Aware Responses** – Recognizes follow-up questions like *“More synonyms?”* or *“Explain better”* and fetches additional information.  
 ✔ **Casual Chat Handling** – Engages in natural conversation when the query is not dictionary-related using the **Gemini AI API**.  
 ✔ **User Authentication (Optional)** – Supports **user registration and login** for a personalized experience.  
@@ -22,8 +22,8 @@ It integrates **Wordnik API** for fetching dictionary data and **Gemini AI API**
 DictionBot consists of the following modules:  
 
 1️⃣ **User Interaction Module** – Handles user input, detects intent (dictionary vs. general conversation), and forwards the query.  
-2️⃣ **Natural Language Processing (NLP) Module** – Processes user input, extracts key words, and determines the required response.  
-3️⃣ **Dictionary API Integration** – Fetches definitions, synonyms, examples, and parts of speech from the **Wordnik API**.  
+2️⃣ **Natural Language Processing (NLP) Module** – Processes user input, extracts key words, and determines the required response using gemini API.  
+3️⃣ **Dictionary API Integration** – Fetches definitions, synonyms, examples, and parts of speech from the **Wordnik API,Free Dictionary API,Merrium Webster API**.  
 4️⃣ **AI Chat Module** – Uses **Gemini AI API** to handle casual conversations and detailed explanations.  
 5️⃣ **Response Generation Module** – Formats responses and ensures they are clear and easy to understand.  
 6️⃣ **User Authentication & Data Storage (Optional)** – Allows users to **sign up, log in, and save preferences** for a better experience.  
@@ -33,19 +33,19 @@ DictionBot consists of the following modules:
 ### **How It Works**  
 1️⃣ User sends a message (*e.g., "What does 'serendipity' mean?"*).  
 2️⃣ The chatbot **analyzes the input** to determine if it’s a dictionary query or a casual conversation.  
-3️⃣ If it’s a **dictionary query**, the **Wordnik API** is called to fetch the word details.  
+3️⃣ If it’s a **dictionary query**, the **Wordnik API,Free Dictionary API,Merrium Webster API** is called to fetch the word details.  
 4️⃣ If it’s a **general chat**, the **Gemini AI API** generates a natural response.  
 5️⃣ The chatbot **displays the response** in a user-friendly format.  
-6️⃣ If the user asks for more details (e.g., *“More examples?”*), the system fetches additional data dynamically.  
+6️⃣ If the user asks for more details (e.g., *“More examples?”*), the system fetches additional data dynamically using gemini API.  
 
 ---
 
 ### **Technologies Used**  
-🛠 **Programming Language** – Python  
-🛠 **APIs Used** – Wordnik API, Gemini AI API  
-🛠 **Frameworks** – Flask / FastAPI (for backend), React (optional for UI)  
-🛠 **Database** – SQLite / Firebase (if storing user data)  
-🛠 **NLP** – SpaCy / NLTK for text processing  
+🛠 **Programming Language** – Node.js
+🛠 **APIs Used** – Wordnik API, Gemini AI API, Free Dictionary API, Merrium Webster API 
+🛠 **Frameworks** – Node (for backend), HTML,CSS,JS (for UI)  
+🛠 **Database** – MongoDB (for storing user data)  
+ 
 
 ---
 
@@ -65,6 +65,8 @@ node app.js
 - Add API keys to a `.env` file  
 ```sh
 WORDNIK_API_KEY=your_wordnik_api_key
+MERRIUM_WEBSTER_API_KEY=your_api_key
+FREE_DICT_API_KEY=your_api_key
 GEMINI_API_KEY=your_gemini_api_key
 ```
 ---
