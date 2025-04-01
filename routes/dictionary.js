@@ -146,9 +146,10 @@ async function classifyQueryUsingGemini(text) {
         const prompt = `Classify the following user query into one of these types:
         - "greeting" (if it's a greeting like hi, hello)
         - "bot-info" (if it's about the bot's role, like who are you?)
-        - "follow-up" (if it's asking for more details like more examples,explain clearly,proper explaination,if the user didn't get the word meaning)
+        - "follow-up" (if it's asking for more details like more examples,explain clearly,proper explaination,if the user didn't get the word meaning,i didn't get it,didn't get,explain it clearly,give me more definition)
         - "dictionary" (if the user is asking for a word meaning)
         - "out-of-scope" (if it's not related to the above categories and it's not related to meaning or vocabulary or dictionary)
+        - "gratitude (if it's a gratitude or appreciation from the user like thank you,nice,u made my day,thanks)
         
         Query: "${text}"
         Return the type ONLY, without explanation.`;
@@ -251,8 +252,11 @@ router.post('/chat', async (req, res) => {
 
     if (classification.type === "bot-info") return res.json({ response: "I am DictionBot, a dictionary-based chatbot! I will help you to learn vocabulary and provide explanation for clear understanding." });
 
-    if (classification.type === "out-of-scope") return res.json({ response: "I am DictionBot, a dictionary-based chatbot! I only provide knowledge related to dictionary and vocabulary. Please feel free to ask any kind of meanings, definitions, etc." });
+    if (classification.type === "out-of-scope") return res.json({ response: "Out of context Query.I am DictionBot, a dictionary-based chatbot! I only provide knowledge related to dictionary and vocabulary. Please feel free to ask any kind of meanings, definitions, etc." });
     
+    if (classification.type === "gratitude") return res.json({ response: "😊 Iam glad to hear that from you. Please feel free to ask any word definition,examples..etc " });
+
+
     return res.json({ response: await fetchFromGemini(query) });
 });
 
